@@ -1,0 +1,23 @@
+{
+  "id": "./",
+  "name": "Dama e Scacchi",
+  "short_name": "Dama e Scacchi",
+  "description": "Scacchi e dama italiana contro il computer, in due sullo stesso telefono oppure online con un codice tavolo.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1714",
+  "theme_color": "#0f1714",
+  "categories": ["games", "board"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "icons/screenshot-scacchi.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Partita a scacchi" },
+    { "src": "icons/screenshot-dama.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Partita a dama" }
+  ]
+}
