@@ -605,7 +605,8 @@ function netRematch(){if(!G||G.mode!=='online'||!net.started||!net.ref)return;co
 
 /* ================= INSTALLAZIONE (PWA) ================= */
 const inst={evt:null};
-const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+const IN_APP=/DamaScacchiApp/.test(navigator.userAgent);
+const isStandalone=()=>{try{return IN_APP||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function syncInstall(){const hide=isStandalone();document.querySelectorAll('.js-install').forEach(b=>b.hidden=hide);}
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();inst.evt=e;syncInstall();});
@@ -620,9 +621,12 @@ async function doInstall(){
   openOv(`<h3>Installa sul telefono</h3><p class="sub">L’app si aggiunge alla schermata Home come le altre, si apre a tutto schermo e funziona anche senza internet (tranne il gioco online). Non serve nessuno store.</p>${steps}<div class="acts"><button class="btn pri" data-x data-focus>Ho capito</button></div>`,sh=>sh.querySelector('[data-x]').onclick=closeOv);}
 document.querySelectorAll('.js-install').forEach(b=>b.addEventListener('click',doInstall));syncInstall();
 
+/* tasto Indietro di Android (app): chiude una finestra, poi torna al menu; false = esci dall'app */
+window.appBack=function(){const ov=$('#ov');if(!ov.hidden){if(ov.dataset.lock)return true;closeOv();return true;}if(!$('#game').hidden){$('#bMenu').click();return true;}return false;};
+
 /* ================= boot ================= */
 $('#pvChess').innerHTML=miniBoard('chess');$('#pvDama').innerHTML=miniBoard('dama');renderMenu();
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator&&!/DamaScacchiApp/.test(navigator.userAgent))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
 </html>

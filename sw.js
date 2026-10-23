@@ -1,5 +1,5 @@
 /* Service worker: tiene in memoria l'app per giocare anche senza connessione. */
-const CACHE = 'dama-scacchi-v2';
+const CACHE = 'dama-scacchi-v3';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'privacy.html', 'licenze.html',
   'js/chess.js', 'js/firebase-app-compat.js', 'js/firebase-auth-compat.js', 'js/firebase-database-compat.js', 'js/firebase-config.js',
