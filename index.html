@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dama e Scacchi</title>
+<meta name="description" content="Scacchi e dama italiana contro il computer, in due sullo stesso telefono oppure online con un codice tavolo.">
+<meta name="theme-color" content="#0f1714">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+@font-face{font-family:'Bodoni Moda';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/bodoni-moda-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Bodoni Moda';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/bodoni-moda-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Bodoni Moda';font-style:italic;font-weight:500;font-display:swap;src:url(fonts/bodoni-moda-latin-500-italic.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-sans-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/instrument-sans-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/instrument-sans-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/instrument-sans-latin-700-normal.woff2) format('woff2')}
+html,body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* Layout: a games-club room — slim header, the wooden board as the centrepiece with player bars above and below it, a side column (status, moves, controls) that drops under the board on phones. */
+:root{
+  --room:#0f1714; --room2:#16211c; --panel:#1b2822; --line:rgba(214,186,120,.22);
+  --ink:#efe7d6; --muted:#a9b3a6; --brass:#d6ba78; --brass2:#f0d99c; --alert:#e0705e; --ok:#8fd19e;
+  --maple:#e9cf9f; --maple2:#d9b47a; --walnut:#7c4b2a; --walnut2:#5e341b; --frame:#3b2112;
+  --font-d:'Bodoni Moda', 'Didot', Georgia, serif;
+  --font-b:'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:radial-gradient(ellipse at 30% -10%,#1d2b24 0%,var(--room) 55%) fixed,var(--room);color:var(--ink);font-family:var(--font-b);font-size:15px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+#app{min-height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:rgba(10,16,13,.6)}
+.brand{font-family:var(--font-d);font-size:24px;font-weight:500;letter-spacing:.01em;color:var(--brass2);white-space:nowrap}
+.brand i{font-style:italic;color:var(--ink);font-weight:500}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:10px;padding:8px 13px;font-size:14px;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{background:rgba(240,217,156,.1);border-color:rgba(240,217,156,.5)}
+.btn.pri{background:linear-gradient(#e3c886,#c09c55);color:#1d150a;border-color:#f0d99c;font-weight:700}
+.btn.pri:hover{background:linear-gradient(#ecd496,#cba860)}
+.btn.big{padding:12px 22px;font-size:16px;border-radius:12px}
+.btn:disabled{opacity:.4;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 15px;font-weight:500}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--brass);color:#1d150a;font-weight:700}
+.inp{background:#0b120f;border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%;min-width:0}
+
+/* menu */
+#menu{flex:1;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.menu-in{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start}
+.hero h1{font-family:var(--font-d);font-weight:500;font-size:clamp(44px,6.5vw,76px);line-height:.95;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
+.hero h1 em{color:var(--brass2)}
+.hero p{color:var(--muted);line-height:1.6;max-width:46ch;margin:0 0 22px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:460px}
+.mini figure{margin:0}
+.mini figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.cfg{display:flex;flex-direction:column;gap:22px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+.grp h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin:0 0 10px;font-weight:600}
+.games{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gt{border:1px solid var(--line);background:rgba(0,0,0,.15);border-radius:14px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.gt[aria-pressed="true"]{border-color:var(--brass2);box-shadow:inset 0 0 0 1px var(--brass2);background:rgba(240,217,156,.06)}
+.gt b{font-family:var(--font-d);font-size:24px;font-weight:500}
+.gt span{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+.resume{border:1px dashed var(--brass);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+
+/* game */
+#game{flex:1;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.play{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.bcol{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.pbar{width:var(--bs);max-width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid transparent;transition:border-color .25s,box-shadow .25s}
+.pbar.turn{border-color:var(--brass);box-shadow:0 0 0 1px rgba(240,217,156,.25),0 0 24px rgba(240,217,156,.12)}
+.pbar .sw{width:22px;height:22px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 -2px 3px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.5)}
+.sw.w{background:radial-gradient(circle at 35% 30%,#fffdf6,#e6dcc6 70%,#c9bb9c)}
+.sw.b{background:radial-gradient(circle at 35% 30%,#5a5550,#1d1b19 70%,#0c0b0a)}
+.pbar .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pbar .tg{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass2);background:rgba(240,217,156,.12);padding:2px 7px;border-radius:6px;white-space:nowrap}
+.pbar .cap{margin-left:auto;display:flex;align-items:center;gap:1px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pbar .cap img{width:18px;height:18px;margin-right:-5px}
+.pbar .cap b{margin-left:8px;color:var(--ink)}
+.frame{box-sizing:border-box;width:var(--bs);max-width:100%;padding:calc(var(--bs) * .035);border-radius:10px;position:relative;
+  background:repeating-linear-gradient(91deg,rgba(0,0,0,.12) 0 2px,transparent 2px 8px),linear-gradient(135deg,#5a3219,#3b2112 45%,#4b2a16);
+  box-shadow:inset 0 1px 0 rgba(255,220,170,.25),inset 0 -2px 4px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.55)}
+.board{position:relative;width:100%;aspect-ratio:1;max-width:100%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);box-shadow:0 0 0 2px rgba(0,0,0,.45);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.sq{position:relative}
+.sq.l{background:linear-gradient(135deg,var(--maple),var(--maple2))}
+.sq.d{background:linear-gradient(135deg,var(--walnut),var(--walnut2))}
+.sq.l::before,.sq.d::before{content:"";position:absolute;inset:0;opacity:.35;background:repeating-linear-gradient(var(--ga,12deg),rgba(0,0,0,.08) 0 1px,transparent 1px 5px)}
+.sq.last::after{content:"";position:absolute;inset:0;background:rgba(240,206,90,.38)}
+.sq.sel::after{content:"";position:absolute;inset:0;background:rgba(240,206,90,.55)}
+.sq.chk::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(230,60,40,.85) 0%,rgba(230,60,40,.35) 45%,transparent 72%)}
+.dot{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:4}
+.dot::before{content:"";width:30%;height:30%;border-radius:50%;background:rgba(20,30,20,.42)}
+.dot.cap::before{width:86%;height:86%;background:transparent;border:5px solid rgba(20,30,20,.4);box-sizing:border-box}
+.crd{position:absolute;font-size:calc(var(--bs) * .022);font-weight:700;pointer-events:none;line-height:1;z-index:1}
+.crd.f{right:3px;bottom:2px}.crd.r{left:3px;top:3px}
+.sq.l .crd{color:var(--walnut)}.sq.d .crd{color:var(--maple)}
+.num{position:absolute;left:3px;top:3px;font-size:calc(var(--bs) * .02);color:rgba(233,207,159,.55);font-weight:600;pointer-events:none;z-index:1}
+.pcs{position:absolute;inset:0;pointer-events:none;z-index:3}
+.pc{position:absolute;left:0;top:0;width:12.5%;height:12.5%;transition:transform var(--mt,220ms) cubic-bezier(.3,.7,.3,1),opacity .25s;will-change:transform}
+.pc img{width:100%;height:100%;display:block;filter:drop-shadow(0 calc(var(--bs) * .006) calc(var(--bs) * .005) rgba(0,0,0,.45))}
+.pc.gone{opacity:0}
+.pc.up{z-index:5}
+.disc{position:absolute;inset:11%;border-radius:50%}
+.disc.w{background:repeating-radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 0 9%,rgba(120,100,70,.18) 9.5% 10.5%,rgba(0,0,0,0) 11% 20%),radial-gradient(circle at 38% 32%,#fffef8,#efe5cf 55%,#cbbd9e 100%);box-shadow:inset 0 -3px 5px rgba(80,60,30,.35),inset 0 2px 2px rgba(255,255,255,.8),0 3px 4px rgba(0,0,0,.5)}
+.disc.b{background:repeating-radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 0 9%,rgba(255,255,255,.08) 9.5% 10.5%,rgba(0,0,0,0) 11% 20%),radial-gradient(circle at 38% 32%,#605a54,#26221f 55%,#0f0d0c 100%);box-shadow:inset 0 -3px 5px rgba(0,0,0,.6),inset 0 2px 2px rgba(255,255,255,.18),0 3px 4px rgba(0,0,0,.55)}
+.disc.k2{transform:translate(-4%,-9%)}
+.disc .crown{position:absolute;inset:24%;background:no-repeat center/contain}
+.status{font-size:15px;line-height:1.45;min-height:2.9em}
+.status b{color:var(--brass2)}
+.side{display:flex;flex-direction:column;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+.side h3{font-family:var(--font-d);font-weight:500;font-size:26px;margin:0}
+.moves{max-height:260px;overflow:auto;font-variant-numeric:tabular-nums;font-size:14px;border-top:1px solid var(--line);padding-top:10px}
+.moves ol{margin:0;padding-left:34px;columns:1}
+.moves li{padding:2px 0;color:var(--muted)}
+.moves li span{display:inline-block;min-width:76px;color:var(--ink)}
+.moves .empty{color:var(--muted);font-size:13px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ctl .btn{width:100%}
+.think{display:inline-flex;gap:4px;vertical-align:middle;margin-left:6px}
+.think i{width:6px;height:6px;border-radius:50%;background:var(--brass);animation:bl 1s infinite}
+.think i:nth-child(2){animation-delay:.15s}.think i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* overlay */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(5,9,7,.62);display:grid;place-items:center;padding:16px;backdrop-filter:blur(2px)}
+.sheet{background:linear-gradient(#1e2c25,#16211c);border:1px solid var(--line);border-radius:18px;width:100%;max-width:600px;max-height:calc(100% - 8px);overflow:auto;padding:22px 24px 24px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.sheet h3{font-family:var(--font-d);font-weight:500;font-size:32px;margin:0 0 8px;color:var(--brass2);text-wrap:balance}
+.sheet p,.sheet li{line-height:1.58}
+.sheet p{margin:8px 0}
+.sheet ul,.sheet ol{padding-left:20px;margin:8px 0}
+.sheet li{margin:4px 0}
+.sheet h4{margin:18px 0 4px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.sheet .sub{color:var(--muted)}
+.sheet .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.promo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.promo button{background:linear-gradient(135deg,var(--maple),var(--maple2));border:2px solid transparent;border-radius:12px;padding:6px;aspect-ratio:1}
+.promo button:hover{border-color:var(--brass2)}
+.promo img{width:100%;height:100%}
+.code{font-family:var(--font-d);font-size:58px;letter-spacing:.16em;text-align:center;color:var(--brass2);margin:6px 0}
+.wait{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.tabs{display:flex;gap:6px;margin:6px 0 4px}
+.small{font-size:12px;color:var(--muted);line-height:1.5}
+.small a{color:var(--brass2)}
+footer{padding-block:0 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));text-align:center}
+
+@media (max-width:900px){
+  .menu-in{grid-template-columns:minmax(0,1fr);gap:22px}
+  .play{grid-template-columns:minmax(0,1fr)}
+  .side{max-width:640px;width:100%;margin:0 auto}
+}
+@media (max-width:480px){
+  .brand{font-size:21px}
+  header .btn{padding:7px 10px;font-size:13px}
+  .cfg{padding:16px}
+  .two{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.pc{--mt:0ms!important}.think i{animation:none;opacity:.7}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">Dama <i>e</i> Scacchi</div>
+    <div class="sp"></div>
+    <button class="btn" id="bMenu" hidden>Menu</button>
+    <button class="btn pri js-install" id="bInstall">Installa</button>
+    <button class="btn" id="bRules">Regole</button>
+  </header>
+
+  <main id="menu">
+    <div class="menu-in">
+      <section class="hero">
+        <h1>Una partita a <em>scacchi</em>, o una a <em>dama</em>.</h1>
+        <p>Gioca contro il computer a tre livelli, con un amico sullo stesso telefono, oppure online: crei un tavolo, mandi il codice e giocate ognuno dal proprio telefono. Le regole complete sono a portata di un tocco.</p>
+        <div class="row" style="margin:0 0 22px"><button class="btn pri big js-install" id="bInstall2">Installa sul telefono</button><span class="note" id="instNote" hidden></span></div>
+        <div class="mini">
+          <figure><div id="pvChess"></div><figcaption>Scacchi: regole internazionali</figcaption></figure>
+          <figure><div id="pvDama"></div><figcaption>Dama italiana</figcaption></figure>
+        </div>
+      </section>
+      <section class="cfg">
+        <div id="resumeBox" hidden></div>
+        <div class="grp"><h2>Gioco</h2>
+          <div class="games">
+            <button class="gt" data-g="chess"><b>Scacchi</b><span>16 pezzi a testa, scacco matto</span></button>
+            <button class="gt" data-g="dama"><b>Dama</b><span>12 pedine a testa, presa obbligatoria</span></button>
+          </div>
+        </div>
+        <div class="grp"><h2>Avversario</h2>
+          <div class="seg" id="modeSeg">
+            <button data-m="cpu">Computer</button><button data-m="local">Amico qui</button><button data-m="online">Online</button>
+          </div>
+        </div>
+        <div class="grp" id="grpCpu">
+          <div class="field" style="gap:14px">
+            <div class="field"><label>Livello</label><div class="seg" id="lvSeg"><button data-l="1">Facile</button><button data-l="2">Medio</button><button data-l="3">Difficile</button></div></div>
+            <div class="field"><label>Giochi con</label><div class="seg" id="colSeg"><button data-c="w">Bianco</button><button data-c="b">Nero</button><button data-c="r">A caso</button></div></div>
+          </div>
+        </div>
+        <div class="grp" id="grpNames">
+          <div class="two">
+            <div class="field"><label for="n1" id="n1l">Il tuo nome</label><input class="inp" id="n1" maxlength="16" placeholder="Il tuo nome"></div>
+            <div class="field" id="n2f"><label for="n2">Nome dell’amico</label><input class="inp" id="n2" maxlength="16" placeholder="Amico"></div>
+          </div>
+        </div>
+        <div class="grp" id="grpOnline" hidden>
+          <p class="note">Tu crei il tavolo e mandi il codice di 4 lettere al tuo avversario; lui apre l’app sul suo telefono, sceglie “Online”, scrive il codice e tocca “Entra”. Serve la connessione a internet.</p>
+          <div class="row" style="margin-top:12px">
+            <input class="inp" id="joinCode" maxlength="4" placeholder="Codice" style="max-width:130px;text-transform:uppercase;letter-spacing:.2em">
+            <button class="btn" id="bJoin">Entra</button>
+          </div>
+          <p class="note" id="onErr" style="margin-top:8px;color:var(--alert)"></p>
+        </div>
+        <div class="row">
+          <button class="btn pri big" id="bStart">Inizia la partita</button>
+          <button class="btn" id="bRules2">Leggi le regole</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <section id="game" hidden>
+    <div class="play">
+      <div class="bcol">
+        <div class="pbar" id="barTop"></div>
+        <div class="frame"><div class="board" id="board"></div></div>
+        <div class="pbar" id="barBot"></div>
+      </div>
+      <aside class="side">
+        <h3 id="gTitle">Scacchi</h3>
+        <div class="status" id="status" aria-live="polite"></div>
+        <div class="ctl">
+          <button class="btn" id="bUndo">Annulla mossa</button>
+          <button class="btn" id="bFlip">Gira scacchiera</button>
+          <button class="btn" id="bResign">Abbandona</button>
+          <button class="btn" id="bNew">Nuova partita</button>
+        </div>
+        <div class="moves" id="moves"></div>
+      </aside>
+    </div>
+  </section>
+  <footer><p class="small">Pezzi degli scacchi: set “cburnett” di Colin M.L. Burnett (GPLv2+). Regole degli scacchi: chess.js di Jeff Hlywa (licenza BSD). Caratteri Bodoni Moda e Instrument Sans (SIL Open Font License). <a href="privacy.html">Informativa sulla privacy</a> · <a href="licenze.html">Licenze</a></p></footer>
+  <div class="ov" id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+</div>
+
+<script src="js/chess.js"></script>
+<script src="js/firebase-app-compat.js"></script>
+<script src="js/firebase-auth-compat.js"></script>
+<script src="js/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script>
+'use strict';
+const PIECES={"wp": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PHBhdGggZD0iTTIyLjUgOWMtMi4yMSAwLTQgMS43OS00IDQgMCAuODkuMjkgMS43MS43OCAyLjM4QzE3LjMzIDE2LjUgMTYgMTguNTkgMTYgMjFjMCAyLjAzLjk0IDMuODQgMi40MSA1LjAzLTMgMS4wNi03LjQxIDUuNTUtNy40MSAxMy40N2gyM2MwLTcuOTItNC40MS0xMi40MS03LjQxLTEzLjQ3IDEuNDctMS4xOSAyLjQxLTMgMi40MS01LjAzIDAtMi40MS0xLjMzLTQuNS0zLjI4LTUuNjIuNDktLjY3Ljc4LTEuNDkuNzgtMi4zOCAwLTIuMjEtMS43OS00LTQtNHoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==", "wb": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxnIGZpbGw9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJidXR0Ij48cGF0aCBkPSJNOSAzNmMzLjM5LS45NyAxMC4xMS40MyAxMy41LTIgMy4zOSAyLjQzIDEwLjExIDEuMDMgMTMuNSAyIDAgMCAxLjY1LjU0IDMgMi0uNjguOTctMS42NS45OS0zIC41LTMuMzktLjk3LTEwLjExLjQ2LTEzLjUtMS0zLjM5IDEuNDYtMTAuMTEuMDMtMTMuNSAxLTEuMzU0LjQ5LTIuMzIzLjQ3LTMtLjUgMS4zNTQtMS45NCAzLTIgMy0yeiIvPjxwYXRoIGQ9Ik0xNSAzMmMyLjUgMi41IDEyLjUgMi41IDE1IDAgLjUtMS41IDAtMiAwLTIgMC0yLjUtMi41LTQtMi41LTQgNS41LTEuNSA2LTExLjUtNS0xNS41LTExIDQtMTAuNSAxNC01IDE1LjUgMCAwLTIuNSAxLjUtMi41IDQgMCAwLS41LjUgMCAyeiIvPjxwYXRoIGQ9Ik0yNSA4YTIuNSAyLjUgMCAxIDEtNSAwIDIuNSAyLjUgMCAxIDEgNSAweiIvPjwvZz48cGF0aCBkPSJNMTcuNSAyNmgxME0xNSAzMGgxNW0tNy41LTE0LjV2NU0yMCAxOGg1IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIi8+PC9nPjwvc3ZnPg==", "wn": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMiAxMGMxMC41IDEgMTYuNSA4IDE2IDI5SDE1YzAtOSAxMC02LjUgOC0yMSIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0yNCAxOGMuMzggMi45MS01LjU1IDcuMzctOCA5LTMgMi0yLjgyIDQuMzQtNSA0LTEuMDQyLS45NCAxLjQxLTMuMDQgMC0zLTEgMCAuMTkgMS4yMy0xIDItMSAwLTQuMDAzIDEtNC00IDAtMiA2LTEyIDYtMTJzMS44OS0xLjkgMi0zLjVjLS43My0uOTk0LS41LTItLjUtMyAxLTEgMyAyLjUgMyAyLjVoMnMuNzgtMS45OTIgMi41LTNjMSAwIDEgMyAxIDMiIGZpbGw9IiNmZmYiLz48cGF0aCBkPSJNOS41IDI1LjVhLjUuNSAwIDEgMS0xIDAgLjUuNSAwIDEgMSAxIDB6bTUuNDMzLTkuNzVhLjUgMS41IDMwIDEgMS0uODY2LS41LjUgMS41IDMwIDEgMSAuODY2LjV6IiBmaWxsPSIjMDAwIi8+PC9nPjwvc3ZnPg==", "wr": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik05IDM5aDI3di0zSDl2M3ptMy0zdi00aDIxdjRIMTJ6bS0xLTIyVjloNHYyaDVWOWg1djJoNVY5aDR2NSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiLz48cGF0aCBkPSJNMzQgMTRsLTMgM0gxNGwtMy0zIi8+PHBhdGggZD0iTTMxIDE3djEyLjVIMTRWMTciIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIi8+PHBhdGggZD0iTTMxIDI5LjVsMS41IDIuNWgtMjBsMS41LTIuNSIvPjxwYXRoIGQ9Ik0xMSAxNGgyMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPjwvZz48L3N2Zz4=", "wq": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik04IDEyYTIgMiAwIDEgMS00IDAgMiAyIDAgMSAxIDQgMHptMTYuNS00LjVhMiAyIDAgMSAxLTQgMCAyIDIgMCAxIDEgNCAwek00MSAxMmEyIDIgMCAxIDEtNCAwIDIgMiAwIDEgMSA0IDB6TTE2IDguNWEyIDIgMCAxIDEtNCAwIDIgMiAwIDEgMSA0IDB6TTMzIDlhMiAyIDAgMSAxLTQgMCAyIDIgMCAxIDEgNCAweiIvPjxwYXRoIGQ9Ik05IDI2YzguNS0xLjUgMjEtMS41IDI3IDBsMi0xMi03IDExVjExbC01LjUgMTMuNS0zLTE1LTMgMTUtNS41LTE0VjI1TDcgMTRsMiAxMnoiIHN0cm9rZS1saW5lY2FwPSJidXR0Ii8+PHBhdGggZD0iTTkgMjZjMCAyIDEuNSAyIDIuNSA0IDEgMS41IDEgMSAuNSAzLjUtMS41IDEtMS41IDIuNS0xLjUgMi41LTEuNSAxLjUuNSAyLjUuNSAyLjUgNi41IDEgMTYuNSAxIDIzIDAgMCAwIDEuNS0xIDAtMi41IDAgMCAuNS0xLjUtMS0yLjUtLjUtMi41LS41LTIgLjUtMy41IDEtMiAyLjUtMiAyLjUtNC04LjUtMS41LTE4LjUtMS41LTI3IDB6IiBzdHJva2UtbGluZWNhcD0iYnV0dCIvPjxwYXRoIGQ9Ik0xMS41IDMwYzMuNS0xIDE4LjUtMSAyMiAwTTEyIDMzLjVjNi0xIDE1LTEgMjEgMCIgZmlsbD0ibm9uZSIvPjwvZz48L3N2Zz4=", "wk": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMi41IDExLjYzVjZNMjAgOGg1IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIi8+PHBhdGggZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIgZmlsbD0iI2ZmZiIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiLz48cGF0aCBkPSJNMTEuNSAzN2M1LjUgMy41IDE1LjUgMy41IDIxIDB2LTdzOS00LjUgNi0xMC41Yy00LTYuNS0xMy41LTMuNS0xNiA0VjI3di0zLjVjLTMuNS03LjUtMTMtMTAuNS0xNi00LTMgNiA1IDEwIDUgMTBWMzd6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTExLjUgMzBjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwIi8+PC9nPjwvc3ZnPg==", "bp": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PHBhdGggZD0iTTIyLjUgOWMtMi4yMSAwLTQgMS43OS00IDQgMCAuODkuMjkgMS43MS43OCAyLjM4QzE3LjMzIDE2LjUgMTYgMTguNTkgMTYgMjFjMCAyLjAzLjk0IDMuODQgMi40MSA1LjAzLTMgMS4wNi03LjQxIDUuNTUtNy40MSAxMy40N2gyM2MwLTcuOTItNC40MS0xMi40MS03LjQxLTEzLjQ3IDEuNDctMS4xOSAyLjQxLTMgMi40MS01LjAzIDAtMi40MS0xLjMzLTQuNS0zLjI4LTUuNjIuNDktLjY3Ljc4LTEuNDkuNzgtMi4zOCAwLTIuMjEtMS43OS00LTQtNHoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==", "bb": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxnIGZpbGw9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJidXR0Ij48cGF0aCBkPSJNOSAzNmMzLjM5LS45NyAxMC4xMS40MyAxMy41LTIgMy4zOSAyLjQzIDEwLjExIDEuMDMgMTMuNSAyIDAgMCAxLjY1LjU0IDMgMi0uNjguOTctMS42NS45OS0zIC41LTMuMzktLjk3LTEwLjExLjQ2LTEzLjUtMS0zLjM5IDEuNDYtMTAuMTEuMDMtMTMuNSAxLTEuMzU0LjQ5LTIuMzIzLjQ3LTMtLjUgMS4zNTQtMS45NCAzLTIgMy0yeiIvPjxwYXRoIGQ9Ik0xNSAzMmMyLjUgMi41IDEyLjUgMi41IDE1IDAgLjUtMS41IDAtMiAwLTIgMC0yLjUtMi41LTQtMi41LTQgNS41LTEuNSA2LTExLjUtNS0xNS41LTExIDQtMTAuNSAxNC01IDE1LjUgMCAwLTIuNSAxLjUtMi41IDQgMCAwLS41LjUgMCAyeiIvPjxwYXRoIGQ9Ik0yNSA4YTIuNSAyLjUgMCAxIDEtNSAwIDIuNSAyLjUgMCAxIDEgNSAweiIvPjwvZz48cGF0aCBkPSJNMTcuNSAyNmgxME0xNSAzMGgxNW0tNy41LTE0LjV2NU0yMCAxOGg1IiBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiLz48L2c+PC9zdmc+", "bn": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMiAxMGMxMC41IDEgMTYuNSA4IDE2IDI5SDE1YzAtOSAxMC02LjUgOC0yMSIgZmlsbD0iIzAwMCIvPjxwYXRoIGQ9Ik0yNCAxOGMuMzggMi45MS01LjU1IDcuMzctOCA5LTMgMi0yLjgyIDQuMzQtNSA0LTEuMDQyLS45NCAxLjQxLTMuMDQgMC0zLTEgMCAuMTkgMS4yMy0xIDItMSAwLTQuMDAzIDEtNC00IDAtMiA2LTEyIDYtMTJzMS44OS0xLjkgMi0zLjVjLS43My0uOTk0LS41LTItLjUtMyAxLTEgMyAyLjUgMyAyLjVoMnMuNzgtMS45OTIgMi41LTNjMSAwIDEgMyAxIDMiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNOS41IDI1LjVhLjUuNSAwIDEgMS0xIDAgLjUuNSAwIDEgMSAxIDB6bTUuNDMzLTkuNzVhLjUgMS41IDMwIDEgMS0uODY2LS41LjUgMS41IDMwIDEgMSAuODY2LjV6IiBmaWxsPSIjZWNlY2VjIiBzdHJva2U9IiNlY2VjZWMiLz48cGF0aCBkPSJNMjQuNTUgMTAuNGwtLjQ1IDEuNDUuNS4xNWMzLjE1IDEgNS42NSAyLjQ5IDcuOSA2Ljc1UzM1Ljc1IDI5LjA2IDM1LjI1IDM5bC0uMDUuNWgyLjI1bC4wNS0uNWMuNS0xMC4wNi0uODgtMTYuODUtMy4yNS0yMS4zNC0yLjM3LTQuNDktNS43OS02LjY0LTkuMTktNy4xNmwtLjUxLS4xeiIgZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSJub25lIi8+PC9nPjwvc3ZnPg==", "br": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik05IDM5aDI3di0zSDl2M3ptMy41LTdsMS41LTIuNWgxN2wxLjUgMi41aC0yMHptLS41IDR2LTRoMjF2NEgxMnoiIHN0cm9rZS1saW5lY2FwPSJidXR0Ii8+PHBhdGggZD0iTTE0IDI5LjV2LTEzaDE3djEzSDE0eiIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiLz48cGF0aCBkPSJNMTQgMTYuNUwxMSAxNGgyM2wtMyAyLjVIMTR6TTExIDE0VjloNHYyaDVWOWg1djJoNVY5aDR2NUgxMXoiIHN0cm9rZS1saW5lY2FwPSJidXR0Ii8+PHBhdGggZD0iTTEyIDM1LjVoMjFtLTIwLTRoMTltLTE4LTJoMTdtLTE3LTEzaDE3TTExIDE0aDIzIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPjwvZz48L3N2Zz4=", "bq": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxnIHN0cm9rZT0ibm9uZSI+PGNpcmNsZSBjeD0iNiIgY3k9IjEyIiByPSIyLjc1Ii8+PGNpcmNsZSBjeD0iMTQiIGN5PSI5IiByPSIyLjc1Ii8+PGNpcmNsZSBjeD0iMjIuNSIgY3k9IjgiIHI9IjIuNzUiLz48Y2lyY2xlIGN4PSIzMSIgY3k9IjkiIHI9IjIuNzUiLz48Y2lyY2xlIGN4PSIzOSIgY3k9IjEyIiByPSIyLjc1Ii8+PC9nPjxwYXRoIGQ9Ik05IDI2YzguNS0xLjUgMjEtMS41IDI3IDBsMi41LTEyLjVMMzEgMjVsLS4zLTE0LjEtNS4yIDEzLjYtMy0xNC41LTMgMTQuNS01LjItMTMuNkwxNCAyNSA2LjUgMTMuNSA5IDI2eiIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiLz48cGF0aCBkPSJNOSAyNmMwIDIgMS41IDIgMi41IDQgMSAxLjUgMSAxIC41IDMuNS0xLjUgMS0xLjUgMi41LTEuNSAyLjUtMS41IDEuNS41IDIuNS41IDIuNSA2LjUgMSAxNi41IDEgMjMgMCAwIDAgMS41LTEgMC0yLjUgMCAwIC41LTEuNS0xLTIuNS0uNS0yLjUtLjUtMiAuNS0zLjUgMS0yIDIuNS0yIDIuNS00LTguNS0xLjUtMTguNS0xLjUtMjcgMHoiIHN0cm9rZS1saW5lY2FwPSJidXR0Ii8+PHBhdGggZD0iTTExIDM4LjVhMzUgMzUgMSAwIDAgMjMgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiLz48cGF0aCBkPSJNMTEgMjlhMzUgMzUgMSAwIDEgMjMgMG0tMjEuNSAyLjVoMjBtLTIxIDNhMzUgMzUgMSAwIDAgMjIgMG0tMjMgM2EzNSAzNSAxIDAgMCAyNCAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2VjZWMiLz48L2c+PC9zdmc+", "bk": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMi41IDExLjYzVjYiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiLz48cGF0aCBkPSJNMjIuNSAyNXM0LjUtNy41IDMtMTAuNWMwIDAtMS0yLjUtMy0yLjVzLTMgMi41LTMgMi41Yy0xLjUgMyAzIDEwLjUgMyAxMC41IiBmaWxsPSIjMDAwIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPjxwYXRoIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMFYzN3oiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNMjAgOGg1IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIi8+PHBhdGggZD0iTTMyIDI5LjVzOC41LTQgNi4wMy05LjY1QzM0LjE1IDE0IDI1IDE4IDIyLjUgMjQuNWwuMDEgMi4xLS4wMS0yLjFDMjAgMTggOS45MDYgMTQgNi45OTcgMTkuODVjLTIuNDk3IDUuNjUgNC44NTMgOSA0Ljg1MyA5IiBzdHJva2U9IiNlY2VjZWMiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiIHN0cm9rZT0iI2VjZWNlYyIvPjwvZz48L3N2Zz4="};
+const $=s=>document.querySelector(s);
+const mk=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const cleanName=s=>String(s||'').replace(/[^\p{L}\p{N} '._-]/gu,'').trim().slice(0,16);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const store={get(k,d){try{const v=localStorage.getItem('dsc.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('dsc.'+k,JSON.stringify(v));}catch(e){}}};
+let prefs=Object.assign({g:'chess',mode:'cpu',lv:2,col:'w',n1:'',n2:''},store.get('prefs',{}));
+const save=()=>store.set('prefs',prefs);
+const HAS_CHESS=typeof Chess==='function';
+const CROWN='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30"><path d="M3 26 L6 8 L14 17 L20 4 L26 17 L34 8 L37 26 Z" fill="#d6b25e" stroke="#7a5a1c" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6" cy="7" r="2.6" fill="#d6b25e" stroke="#7a5a1c"/><circle cx="20" cy="3.5" r="2.6" fill="#d6b25e" stroke="#7a5a1c"/><circle cx="34" cy="7" r="2.6" fill="#d6b25e" stroke="#7a5a1c"/></svg>');
+
+/* ================= DAMA ITALIANA ================= */
+const isDark=(r,c)=>(r+c)%2===0;           // casella scura in basso a destra
+const dNum=(r,c)=>r*4+Math.floor(c/2)+1;    // numerazione 1-32 dal lato del Nero
+const isK=p=>p==='W'||p==='B';
+const colOf=p=>p&&p.toLowerCase();
+function dNew(){const b=[];for(let r=0;r<8;r++){b.push([]);for(let c=0;c<8;c++)b[r].push(isDark(r,c)?(r<3?'b':r>4?'w':null):null);}return {b,turn:'w',quiet:0,rep:{},hist:[]};}
+function dKey(s){return s.turn+s.b.map(r=>r.map(x=>x||'.').join('')).join('');}
+function dCaps(b,sr,sc){const p=b[sr][sc],me=colOf(p),king=isK(p),res=[];const dirs=king?[[-1,-1],[-1,1],[1,-1],[1,1]]:me==='w'?[[-1,-1],[-1,1]]:[[1,-1],[1,1]];const promo=me==='w'?0:7;
+  (function dfs(r,c,path,caps,capK,taken){let ext=false;
+    for(const [dr,dc] of dirs){const mr=r+dr,mc=c+dc,lr=r+2*dr,lc=c+2*dc;if(lr<0||lr>7||lc<0||lc>7)continue;const m=b[mr][mc];
+      if(!m||colOf(m)===me||taken.includes(mr*8+mc))continue;if(!king&&isK(m))continue;
+      if(b[lr][lc]&&!(lr===sr&&lc===sc))continue;ext=true;
+      const np=path.concat([[lr,lc]]),nc=caps.concat([[mr,mc]]),nk=capK.concat([isK(m)]),nt=taken.concat([mr*8+mc]);
+      if(!king&&lr===promo){res.push({from:[sr,sc],path:np,caps:nc,capK:nk,king});continue;}
+      dfs(lr,lc,np,nc,nk,nt);}
+    if(!ext&&caps.length)res.push({from:[sr,sc],path,caps,capK,king});})(sr,sc,[],[],[],[]);
+  return res;}
+function dMoves(s){const b=s.b;let caps=[];const quiet=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p||colOf(p)!==s.turn)continue;caps=caps.concat(dCaps(b,r,c));}
+  if(caps.length){let m=Math.max(...caps.map(x=>x.caps.length));let L=caps.filter(x=>x.caps.length===m);
+    if(L.some(x=>x.king))L=L.filter(x=>x.king);
+    const nk=x=>x.capK.filter(Boolean).length;m=Math.max(...L.map(nk));L=L.filter(x=>nk(x)===m);
+    const fk=x=>{const i=x.capK.indexOf(true);return i<0?99:i;};m=Math.min(...L.map(fk));L=L.filter(x=>fk(x)===m);
+    return L;}
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p||colOf(p)!==s.turn)continue;const dirs=isK(p)?[[-1,-1],[-1,1],[1,-1],[1,1]]:s.turn==='w'?[[-1,-1],[-1,1]]:[[1,-1],[1,1]];
+    for(const [dr,dc] of dirs){const nr=r+dr,nc=c+dc;if(nr<0||nr>7||nc<0||nc>7||b[nr][nc])continue;quiet.push({from:[r,c],path:[[nr,nc]],caps:[],capK:[],king:isK(p)});}}
+  return quiet;}
+const dStr=m=>[dNum(...m.from)].concat(m.path.map(p=>dNum(...p))).join(m.caps.length?'x':'-');
+function dApply(s,m){const b=s.b.map(r=>r.slice());const [fr,fc]=m.from,p=b[fr][fc];b[fr][fc]=null;m.caps.forEach(([r,c])=>b[r][c]=null);
+  const [tr,tc]=m.path[m.path.length-1];let np=p;if(p==='w'&&tr===0)np='W';if(p==='b'&&tr===7)np='B';b[tr][tc]=np;
+  const ns={b,turn:s.turn==='w'?'b':'w',quiet:(m.caps.length||!isK(p))?0:s.quiet+1,rep:Object.assign({},s.rep),hist:s.hist.concat([dStr(m)])};
+  const k=dKey(ns);ns.rep[k]=(ns.rep[k]||0)+1;return ns;}
+function dStatus(s){const ms=dMoves(s);if(!ms.length)return {over:true,win:s.turn==='w'?'b':'w',why:(s.turn==='w'?'Il Bianco':'Il Nero')+' non ha più mosse'};
+  if(s.quiet>=80)return {over:true,win:null,why:'40 mosse a testa senza prese né mosse di pedina'};
+  if(Object.values(s.rep).some(v=>v>=3))return {over:true,win:null,why:'la stessa posizione si è ripetuta tre volte'};return {over:false,moves:ms};}
+function dEval(s){let v=0;const b=s.b;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p)continue;let x;
+  if(p==='w')x=100+(7-r)*5+(r===7?8:0);else if(p==='b')x=100+r*5+(r===0?8:0);else x=270;
+  if(c>=2&&c<=5&&r>=2&&r<=5)x+=6;v+=colOf(p)==='w'?x:-x;}return s.turn==='w'?v:-v;}
+function dSearch(s,d,a,bt){const ms=dMoves(s);if(!ms.length)return -100000-d;if(d<=0&&!ms[0].caps.length)return dEval(s);if(d<=-4)return dEval(s);
+  for(const m of ms){const v=-dSearch(dApply(s,m),d-1,-bt,-a);if(v>=bt)return v;if(v>a)a=v;}return a;}
+function dBest(s,lv){const ms=dMoves(s),depth=[0,2,4,6][lv],noise=lv===1?60:lv===2?8:0;let best=null,bv=-1e9;
+  for(const m of ms){const v=-dSearch(dApply(s,m),depth-1,-1e9,1e9)+Math.random()*noise;if(v>bv){bv=v;best=m;}}return best;}
+
+/* ================= SCACCHI (chess.js) ================= */
+const FILES='abcdefgh';
+const sqName=(r,c)=>FILES[c]+(8-r);
+const sqRC=n=>[8-(+n[1]),FILES.indexOf(n[0])];
+const PV={p:100,n:320,b:330,r:500,q:900,k:0};
+const PST={
+p:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
+n:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+b:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+r:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
+k:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]};
+function cEval(ch){const bd=ch.board();let v=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(!p)continue;const i=p.color==='w'?r*8+c:(7-r)*8+c;const x=PV[p.type]+PST[p.type][i];v+=p.color==='w'?x:-x;}return ch.turn()==='w'?v:-v;}
+const mvScore=m=>(m.captured?10*PV[m.captured]-PV[m.piece]/10+1000:0)+(m.promotion?800:0);
+function cQ(ch,a,bt,d){const st=cEval(ch);if(st>=bt)return st;if(st>a)a=st;if(d<=0)return a;
+  const ms=ch.moves({verbose:true}).filter(m=>m.captured||m.promotion).sort((x,y)=>mvScore(y)-mvScore(x));
+  for(const m of ms){ch.move(m);const v=-cQ(ch,-bt,-a,d-1);ch.undo();if(v>=bt)return v;if(v>a)a=v;}return a;}
+function cSearch(ch,d,a,bt){const ms=ch.moves({verbose:true});if(!ms.length)return ch.in_check()?-100000-d:0;if(d<=0)return cQ(ch,a,bt,3);
+  ms.sort((x,y)=>mvScore(y)-mvScore(x));for(const m of ms){ch.move(m);const v=-cSearch(ch,d-1,-bt,-a);ch.undo();if(v>=bt)return v;if(v>a)a=v;}return a;}
+function cBest(fenMoves,lv){const ch=new Chess();fenMoves.forEach(u=>ch.move(uciObj(u)));const ms=ch.moves({verbose:true}).sort((x,y)=>mvScore(y)-mvScore(x));
+  const depth=[0,1,2,3][lv],noise=lv===1?90:lv===2?12:0;let best=null,bv=-1e9;
+  for(const m of ms){ch.move(m);const v=-cSearch(ch,depth-1,-1e9,-bv+noise)+Math.random()*noise;ch.undo();if(v>bv){bv=v;best=m;}}
+  return best?best.from+best.to+(best.promotion||''):null;}
+const uciObj=u=>({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});
+
+/* ================= game model ================= */
+// G: {g, mode:'cpu'|'local'|'online', me:'w'|'b'|null (for cpu/online), lv, names:{w,b}, mv:[strings], ep}
+let G=null,ch=null,ds=null,flip=false,sel=null,targets=[],busy=false,ended=null,lastMv=null,cpuT=0;
+function rebuild(){if(G.g==='chess'){ch=new Chess();for(const u of G.mv){const r=ch.move(uciObj(u));if(!r){G.mv=G.mv.slice(0,G.mv.indexOf(u));break;}}}
+  else{ds=dNew();ds.rep[dKey(ds)]=1;for(const u of G.mv){const m=dMoves(ds).find(x=>dStr(x)===u);if(!m){G.mv=G.mv.slice(0,G.mv.indexOf(u));break;}ds=dApply(ds,m);}}}
+const turn=()=>G.g==='chess'?ch.turn():ds.turn;
+function status(){if(G.res)return {over:true,win:G.res.win,why:G.res.why};
+  if(G.g==='chess'){if(ch.in_checkmate())return {over:true,win:ch.turn()==='w'?'b':'w',why:'scacco matto'};
+    if(ch.in_stalemate())return {over:true,win:null,why:'stallo: chi deve muovere non ha mosse e non è sotto scacco'};
+    if(ch.in_threefold_repetition())return {over:true,win:null,why:'la stessa posizione si è ripetuta tre volte'};
+    if(ch.insufficient_material())return {over:true,win:null,why:'materiale insufficiente per dare matto'};
+    if(ch.in_draw())return {over:true,win:null,why:'regola delle 50 mosse'};return {over:false};}
+  return dStatus(ds);}
+function pieces(){const out=[];if(G.g==='chess'){const bd=ch.board();for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(p)out.push({r,c,code:p.color+p.type});}}
+  else for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=ds.b[r][c];if(p)out.push({r,c,code:p});}return out;}
+function legalFrom(r,c){if(G.g==='chess')return ch.moves({square:sqName(r,c),verbose:true}).map(m=>({to:sqRC(m.to),cap:!!m.captured,uci:m.from+m.to,promo:!!m.promotion}));
+  return dMoves(ds).filter(m=>m.from[0]===r&&m.from[1]===c).map(m=>({to:m.path[m.path.length-1],cap:m.caps.length>0,uci:dStr(m)}));}
+function myColorNow(){if(G.mode==='local')return turn();return G.me;}
+function canMove(){return !busy&&!ended&&$('#ov').hidden&&turn()===myColorNow()&&(G.mode!=='online'||net.started);}
+
+/* ================= board rendering ================= */
+const boardEl=$('#board');const pcsEl=mk('div','pcs');const pmap=new Map();
+let sqEls=[];
+function buildBoard(){boardEl.innerHTML='';sqEls=[];for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){const r=flip?7-vr:vr,c=flip?7-vc:vc;const d=(r+c)%2===1;
+    const e=mk('div','sq '+(G.g==='dama'?(isDark(r,c)?'d':'l'):(d?'d':'l')));e.style.setProperty('--ga',((r*31+c*17)%40-20)+'deg');e.dataset.r=r;e.dataset.c=c;
+    if(G.g==='chess'){if(vc===0)e.appendChild(mk('span','crd r',String(8-r)));if(vr===7)e.appendChild(mk('span','crd f',FILES[c]));}
+    else if(isDark(r,c))e.appendChild(mk('span','num',String(dNum(r,c))));
+    boardEl.appendChild(e);sqEls.push(e);}
+  boardEl.appendChild(pcsEl);pcsEl.innerHTML='';pmap.clear();}
+const sqEl=(r,c)=>sqEls[(flip?7-r:r)*8+(flip?7-c:c)];
+const pos=(el,r,c)=>{const vr=flip?7-r:r,vc=flip?7-c:c;el.style.transform=`translate(${vc*100}%,${vr*100}%)`;};
+function pieceHTML(code){if(G.g==='chess')return `<img alt="" src="${PIECES[code]}">`;const w=code.toLowerCase()==='w'?'w':'b';
+  return isK(code)?`<div class="disc ${w}"></div><div class="disc ${w} k2"><div class="crown" style="background-image:url('${CROWN}')"></div></div>`:`<div class="disc ${w}"></div>`;}
+function reconcile(){const want=new Map(pieces().map(p=>[p.r*8+p.c,p.code]));
+  for(const [k,el] of pmap){if(want.get(k)!==el.dataset.code){el.remove();pmap.delete(k);}}
+  for(const [k,code] of want){if(pmap.has(k))continue;const el=mk('div','pc',pieceHTML(code));el.dataset.code=code;el.style.setProperty('--mt','0ms');pos(el,k>>3,k&7);pcsEl.appendChild(el);pmap.set(k,el);requestAnimationFrame(()=>el.style.removeProperty('--mt'));}}
+function marks(){sqEls.forEach(e=>{e.classList.remove('sel','last','chk');const d=e.querySelector('.dot');if(d)d.remove();});
+  if(lastMv)lastMv.forEach(([r,c])=>sqEl(r,c).classList.add('last'));
+  if(G.g==='chess'&&ch.in_check()){const bd=ch.board();for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(p&&p.type==='k'&&p.color===ch.turn())sqEl(r,c).classList.add('chk');}}
+  if(sel){sqEl(sel[0],sel[1]).classList.add('sel');targets.forEach(t=>sqEl(t.to[0],t.to[1]).appendChild(mk('div','dot'+(t.cap?' cap':''))));}}
+async function animateMove(desc){const T=prefersReduced?0:210;const el=pmap.get(desc.from[0]*8+desc.from[1]);
+  desc.caps.forEach(([r,c])=>{const k=r*8+c,e=pmap.get(k);if(e&&e!==el){e.classList.add('gone');pmap.delete(k);setTimeout(()=>e.remove(),300);}});
+  if(el){pmap.delete(desc.from[0]*8+desc.from[1]);el.classList.add('up');
+    if(desc.rook){const re=pmap.get(desc.rook[0][0]*8+desc.rook[0][1]);if(re){pmap.delete(desc.rook[0][0]*8+desc.rook[0][1]);pos(re,...desc.rook[1]);pmap.set(desc.rook[1][0]*8+desc.rook[1][1],re);}}
+    for(const st of desc.path){pos(el,st[0],st[1]);tock();if(T)await wait(T+(desc.path.length>1?60:0));}
+    el.classList.remove('up');const L=desc.path[desc.path.length-1];pmap.set(L[0]*8+L[1],el);}
+  reconcile();}
+const prefersReduced=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}})();
+let actx=null;function tock(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();o.type='triangle';o.frequency.setValueAtTime(520,t);o.frequency.exponentialRampToValueAtTime(180,t+.06);g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.1);}catch(e){}}
+
+/* apply a move string, animate, refresh */
+async function doMove(u,fromNet){if(ended&&!fromNet)return false;let desc;
+  if(G.g==='chess'){const m=ch.move(uciObj(u));if(!m)return false;const f=sqRC(m.from),t=sqRC(m.to);desc={from:f,path:[t],caps:[]};
+    if(m.captured)desc.caps.push(m.flags.includes('e')?[f[0],t[1]]:t);
+    if(m.flags.includes('k'))desc.rook=[[f[0],7],[f[0],5]];if(m.flags.includes('q'))desc.rook=[[f[0],0],[f[0],3]];lastMv=[f,t];}
+  else{const m=dMoves(ds).find(x=>dStr(x)===u);if(!m)return false;ds=dApply(ds,m);desc={from:m.from,path:m.path,caps:m.caps};lastMv=[m.from,m.path[m.path.length-1]];}
+  G.mv.push(u);sel=null;targets=[];busy=true;marks();await animateMove(desc);busy=false;if(!G)return false;afterChange(!fromNet);return true;}
+function afterChange(local){if(!G)return;marks();renderSide();const st=status();
+  if(G.mode!=='online')saveGame();
+  if(local&&G.mode==='online')netPush();
+  if(st.over){if(!ended){ended=st;clearTimeout(cpuT);setTimeout(()=>showEnd(st),350);}return;}
+  ended=null;if(G.mode==='cpu'&&turn()!==G.me)scheduleCpu();}
+function scheduleCpu(){clearTimeout(cpuT);renderSide(true);cpuT=setTimeout(()=>{if(!G||G.mode!=='cpu'||turn()===G.me||ended)return;
+  const u=G.g==='chess'?cBest(G.mv,G.lv):dStr(dBest(ds,G.lv));if(u)doMove(u);},G.g==='chess'&&G.lv===3?120:420);}
+
+/* input */
+boardEl.addEventListener('click',e=>{const s=e.target.closest('.sq');if(!s||!G)return;const r=+s.dataset.r,c=+s.dataset.c;onSquare(r,c);});
+function ownPieceAt(r,c){const p=pieces().find(x=>x.r===r&&x.c===c);if(!p)return false;const col=G.g==='chess'?p.code[0]:colOf(p.code);return col===turn();}
+function onSquare(r,c){if(!canMove())return;
+  if(sel){const t=targets.find(t=>t.to[0]===r&&t.to[1]===c);if(t){if(t.promo){askPromo(t.uci);return;}doMove(t.uci);return;}}
+  if(ownPieceAt(r,c)){const ts=legalFrom(r,c);if(sel&&sel[0]===r&&sel[1]===c){sel=null;targets=[];}else{sel=[r,c];targets=ts;}
+    if(!ts.length&&G.g==='dama'&&dMoves(ds).length&&dMoves(ds)[0].caps.length)flash('Presa obbligatoria: devi mangiare con un’altra pedina.');marks();return;}
+  sel=null;targets=[];marks();}
+function askPromo(base){const col=turn();openOv(`<h3>Promozione</h3><p class="sub">Scegli il pezzo in cui si trasforma il pedone.</p><div class="promo">${['q','r','b','n'].map(p=>`<button data-p="${p}" aria-label="${{q:'Donna',r:'Torre',b:'Alfiere',n:'Cavallo'}[p]}"><img alt="" src="${PIECES[col+p]}"></button>`).join('')}</div><div class="acts"><button class="btn" data-x>Annulla</button></div>`,
+  sh=>{sh.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{closeOv();doMove(base+b.dataset.p);});sh.querySelector('[data-x]').onclick=()=>{closeOv();sel=null;targets=[];marks();};});}
+let flashT=0;function flash(t){const s=$('#status');s.dataset.f=t;renderSide();clearTimeout(flashT);flashT=setTimeout(()=>{delete s.dataset.f;renderSide();},2600);}
+
+/* side panel & bars */
+const CNAME={w:'Bianco',b:'Nero'};
+function capInfo(col){if(G.g==='chess'){const start={p:8,n:2,b:2,r:2,q:1};const have={w:{p:0,n:0,b:0,r:0,q:0},b:{p:0,n:0,b:0,r:0,q:0}};
+    pieces().forEach(p=>{const t=p.code[1];if(t!=='k')have[p.code[0]][t]++;});const opp=col==='w'?'b':'w';let html='';
+    ['q','r','b','n','p'].forEach(t=>{const n=Math.max(0,start[t]-have[opp][t]);for(let i=0;i<n;i++)html+=`<img alt="" src="${PIECES[opp+t]}">`;});
+    const mat=c=>Object.entries(have[c]).reduce((a,[t,n])=>a+n*({p:1,n:3,b:3,r:5,q:9}[t]),0);const d=mat(col)-mat(opp);return html+(d>0?`<b>+${d}</b>`:'');}
+  let pe=0,da=0;pieces().forEach(p=>{if(colOf(p.code)===col){if(isK(p.code))da++;else pe++;}});return `Pedine <b style="margin-left:4px">${pe}</b><span style="margin-left:10px">Dame</span> <b style="margin-left:4px">${da}</b>`;}
+function bar(el,col){const isMe=G.mode!=='local'&&G.me===col;const tag=G.mode==='cpu'&&col!==G.me?'Computer':isMe?'Tu':G.mode==='online'?'Online':'';
+  el.className='pbar'+(!ended&&turn()===col?' turn':'');el.innerHTML=`<span class="sw ${col}"></span><span class="nm">${esc(G.names[col]||CNAME[col])}</span>${tag?`<span class="tg">${tag}</span>`:''}<span class="cap">${capInfo(col)}</span>`;}
+function renderSide(thinking){if(!G)return;const bottom=flip?'b':'w';bar($('#barBot'),bottom);bar($('#barTop'),bottom==='w'?'b':'w');
+  $('#gTitle').textContent=G.g==='chess'?'Scacchi':'Dama italiana';
+  const st=status(),s=$('#status');let t;
+  if(s.dataset.f)t=`<b>${esc(s.dataset.f)}</b>`;
+  else if(st.over)t=st.win?`<b>Vince il ${CNAME[st.win]}</b> (${esc(G.names[st.win]||'')}): ${esc(st.why)}.`:`<b>Patta</b>: ${esc(st.why)}.`;
+  else{const tc=turn(),nm=G.names[tc]||CNAME[tc];
+    if(G.mode==='online'&&!net.started)t='In attesa dell’avversario…';
+    else if(G.mode==='cpu'&&tc!==G.me)t=`Il computer sta pensando<span class="think"><i></i><i></i><i></i></span>`;
+    else if(G.mode!=='local'&&tc!==G.me)t=`Tocca a <b>${esc(nm)}</b> (${CNAME[tc]}).`;
+    else t=`Tocca ${G.mode==='local'?'a <b>'+esc(nm)+'</b>':'a <b>te</b>'}, con il ${CNAME[tc]}.`;
+    if(G.g==='chess'&&ch.in_check())t+=' <b style="color:var(--alert)">Scacco!</b>';
+    if(G.g==='dama'&&st.moves&&st.moves[0].caps.length&&(G.mode==='local'||tc===G.me))t+=' Hai una presa obbligatoria.';}
+  s.innerHTML=t;
+  const list=G.g==='chess'?ch.history():ds.hist;let h='';for(let i=0;i<list.length;i+=2)h+=`<li><span>${esc(list[i])}</span>${list[i+1]?esc(list[i+1]):''}</li>`;
+  $('#moves').innerHTML=list.length?`<ol>${h}</ol>`:'<p class="empty">Le mosse compariranno qui.</p>';$('#moves').scrollTop=1e6;
+  $('#bUndo').hidden=G.mode==='online';$('#bUndo').disabled=!G.mv.length||busy;
+  $('#bResign').disabled=!!st.over||(G.mode==='online'&&!net.started);$('#bNew').textContent=G.mode==='online'?'Rivincita':'Nuova partita';
+  $('#bNew').disabled=G.mode==='online'&&!st.over;}
+
+/* overlays */
+function openOv(html,bind){$('#sheet').innerHTML=html;$('#ov').hidden=false;if(bind)bind($('#sheet'));const f=$('#sheet').querySelector('[data-focus]')||$('#sheet').querySelector('button');if(f)f.focus();}
+function closeOv(){$('#ov').hidden=true;$('#sheet').innerHTML='';}
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov'&&!$('#ov').dataset.lock)closeOv();});
+function showEnd(st){if(!G||$('#game').hidden)return;const me=G.mode!=='local'?G.me:null;let h;
+  if(st.win)h=me?(st.win===me?'Hai vinto!':'Hai perso'):`Vince il ${CNAME[st.win]}`;else h='Patta';
+  openOv(`<h3>${h}</h3><p>${st.win?`${esc(G.names[st.win]||CNAME[st.win])} (${CNAME[st.win]}) vince: `:''}${esc(st.why)}.</p><p class="sub">${G.mv.length} semimosse giocate.</p>
+  <div class="acts"><button class="btn" data-x>Guarda la scacchiera</button><button class="btn" data-menu>Menu</button><button class="btn pri" data-go data-focus>${G.mode==='online'?'Rivincita':'Nuova partita'}</button></div>`,
+  sh=>{sh.querySelector('[data-x]').onclick=closeOv;sh.querySelector('[data-menu]').onclick=()=>{closeOv();toMenu();};sh.querySelector('[data-go]').onclick=()=>{closeOv();newGameSame();};});}
+
+/* rules */
+const RULES={chess:`<p>Si gioca su una scacchiera di 64 caselle, con la casella bianca nell’angolo in basso a destra. Ogni giocatore ha 16 pezzi: Re, Donna, 2 Torri, 2 Alfieri, 2 Cavalli e 8 pedoni. Muove sempre per primo il Bianco.</p>
+<h4>Come si muovono i pezzi</h4><ul>
+<li><b>Re</b>: una casella in qualsiasi direzione. Non può mai andare su una casella attaccata.</li>
+<li><b>Donna</b>: quante caselle vuole in orizzontale, verticale o diagonale.</li>
+<li><b>Torre</b>: quante caselle vuole in orizzontale o verticale.</li>
+<li><b>Alfiere</b>: quante caselle vuole in diagonale; resta sempre sullo stesso colore.</li>
+<li><b>Cavallo</b>: muove a “L” (due caselle in una direzione e una di lato) ed è l’unico pezzo che può saltare gli altri.</li>
+<li><b>Pedone</b>: avanza di una casella, o di due alla sua prima mossa. Cattura in diagonale, una casella in avanti.</li></ul>
+<h4>Mosse speciali</h4><ul>
+<li><b>Arrocco</b>: il Re si sposta di due caselle verso una Torre e la Torre lo scavalca. È possibile se Re e Torre non hanno mai mosso, le caselle in mezzo sono libere e il Re non è sotto scacco, non lo attraversa e non ci finisce. Per arroccare, tocca il Re e poi la casella a due passi.</li>
+<li><b>Presa en passant</b>: se un pedone avversario avanza di due caselle e finisce accanto al tuo, alla mossa subito dopo puoi catturarlo come se avesse avanzato di una sola.</li>
+<li><b>Promozione</b>: il pedone che arriva in fondo diventa a scelta Donna, Torre, Alfiere o Cavallo.</li></ul>
+<h4>Fine della partita</h4><ul>
+<li><b>Scacco matto</b>: il Re è sotto attacco e non c’è modo di salvarlo. Chi lo subisce perde.</li>
+<li><b>Patta</b> per stallo (chi deve muovere non ha mosse legali ma non è sotto scacco), per triplice ripetizione della stessa posizione, per materiale insufficiente a dare matto, o dopo 50 mosse a testa senza catture né mosse di pedone.</li>
+<li>Puoi anche <b>abbandonare</b>: la vittoria va all’avversario.</li></ul>
+<h4>Come si gioca qui</h4><p>Tocca un tuo pezzo: i punti mostrano dove può andare e i cerchi le catture possibili. Poi tocca la casella di arrivo. L’app accetta solo mosse regolari.</p>`,
+dama:`<p>Si gioca la <b>dama italiana</b> sulle 32 caselle scure di una damiera 8×8, sistemata con una casella scura nell’angolo in basso a destra di ogni giocatore. Ognuno ha 12 pedine sulle prime tre file. Muove per primo il Bianco.</p>
+<h4>Movimento</h4><ul>
+<li>La <b>pedina</b> si muove di una casella in diagonale, solo in avanti.</li>
+<li>Quando una pedina raggiunge l’ultima fila diventa <b>dama</b> (in questa app una pedina doppia con la corona). La dama si muove di una casella in diagonale, anche all’indietro.</li></ul>
+<h4>Presa</h4><ul>
+<li>Si mangia saltando un pezzo avversario vicino in diagonale, se la casella subito dopo è libera. Dopo un salto, se possibile, si continua a mangiare con la stessa pedina (presa multipla).</li>
+<li>La pedina mangia solo in avanti. La dama mangia in tutte le direzioni.</li>
+<li><b>La pedina non può mangiare la dama.</b></li>
+<li>Se una pedina arriva in ultima fila durante una presa, diventa dama e la mossa finisce lì.</li>
+<li><b>Mangiare è obbligatorio.</b> Se ci sono più prese possibili, valgono queste precedenze, in ordine: 1) si sceglie la presa che cattura più pezzi; 2) a parità, si mangia con la dama invece che con la pedina; 3) a parità, la presa che cattura più dame; 4) a parità, quella che incontra prima una dama. L’app ti fa scegliere solo tra le prese consentite.</li></ul>
+<h4>Fine della partita</h4><ul>
+<li>Vince chi cattura tutti i pezzi avversari o lascia l’avversario senza mosse.</li>
+<li>In questa app la partita è <b>patta</b> se la stessa posizione si ripete tre volte, o dopo 40 mosse a testa fatte solo da dame e senza prese.</li></ul>
+<h4>Notazione</h4><p>Le caselle scure sono numerate da 1 a 32 partendo dal lato del Nero. Una mossa si scrive “22-18”, una presa “22x15”, una presa multipla “22x15x6”.</p>`};
+function showRules(g){g=g||(G&&!$('#game').hidden?G.g:prefs.g);openOv(`<h3>Regole</h3><div class="tabs">${['chess','dama'].map(k=>`<button class="btn${k===g?' pri':''}" data-t="${k}">${k==='chess'?'Scacchi':'Dama'}</button>`).join('')}</div>${RULES[g]}
+  <h4>Giocare online</h4><p>Serve la connessione a internet. Scegli “Online” e “Crea un tavolo”: ricevi un codice di 4 lettere da mandare al tuo avversario. Lui apre l’app, sceglie “Online”, scrive il codice e tocca “Entra”. La partita parte appena entra. Se uno dei due perde la connessione, rientrando con lo stesso codice la partita riprende.</p>
+  <div class="acts"><button class="btn pri" data-x data-focus>Chiudi</button></div>`,sh=>{sh.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>showRules(b.dataset.t));sh.querySelector('[data-x]').onclick=closeOv;});}
+$('#bRules').onclick=()=>showRules();$('#bRules2').onclick=()=>showRules(prefs.g);
+
+/* ================= flow ================= */
+function fitBoard(){const play=$('#game');if(play.hidden)return;const wide=innerWidth>900;const avW=wide?Math.min(1180,play.clientWidth-32)-344:play.clientWidth-32;
+  const avH=innerHeight-($('header').offsetHeight+150);let bs=Math.max(260,Math.min(avW,wide?avH:Math.max(avH,avW*.9),760));bs=Math.min(bs,avW);document.documentElement.style.setProperty('--bs',bs+'px');}
+addEventListener('resize',fitBoard);
+function showGame(on){$('#menu').hidden=on;$('#game').hidden=!on;$('#bMenu').hidden=!on;if(on)fitBoard();}
+function startGame(cfg,keepFlip){clearTimeout(cpuT);G=Object.assign({mv:[],ep:0,res:null},cfg);rebuild();ended=null;sel=null;targets=[];lastMv=null;busy=false;
+  if(!keepFlip)flip=G.me==='b';showGame(true);buildBoard();reconcile();
+  if(G.mv.length){/* mark last move */}
+  marks();renderSide();const st=status();if(st.over){ended=st;}else if(G.mode==='cpu'&&turn()!==G.me)scheduleCpu();if(G.mode!=='online')saveGame();}
+function startOffline(){const loc=prefs.mode==='local',n1=cleanName($('#n1').value)||(loc?'Bianco':'Tu'),n2=cleanName($('#n2').value)||'Nero';prefs.n1=cleanName($('#n1').value);prefs.n2=cleanName($('#n2').value);save();
+  if(prefs.g==='chess'&&!HAS_CHESS){openOv(`<h3>Scacchi non disponibili</h3><p>Non riesco a caricare il motore delle regole degli scacchi. Controlla la connessione e ricarica la pagina; intanto puoi giocare a dama.</p><div class="acts"><button class="btn pri" data-x>Ok</button></div>`,sh=>sh.querySelector('[data-x]').onclick=closeOv);return;}
+  if(prefs.mode==='cpu'){const me=prefs.col==='r'?(Math.random()<.5?'w':'b'):prefs.col;startGame({g:prefs.g,mode:'cpu',me,lv:prefs.lv,names:me==='w'?{w:n1,b:'Computer'}:{w:'Computer',b:n1}});}
+  else startGame({g:prefs.g,mode:'local',me:null,names:{w:n1,b:n2}});}
+function newGameSame(){if(!G)return;if(G.mode==='online'){netRematch();return;}
+  if(G.mode==='cpu'){const me=prefs.col==='r'?(G.me==='w'?'b':'w'):G.me;const n=G.names[G.me];startGame({g:G.g,mode:'cpu',me,lv:G.lv,names:me==='w'?{w:n,b:'Computer'}:{w:'Computer',b:n}});}
+  else startGame({g:G.g,mode:'local',me:null,names:{w:G.names.b,b:G.names.w}},true);}
+function toMenu(){clearTimeout(cpuT);netLeave();G=null;showGame(false);renderMenu();}
+function saveGame(){if(!G||G.mode==='online')return;store.set('game',ended?null:{g:G.g,mode:G.mode,me:G.me,lv:G.lv,names:G.names,mv:G.mv});}
+$('#bMenu').onclick=()=>{if(G&&G.mode==='online'&&!ended&&net.started){openOv(`<h3>Lasciare la partita?</h3><p>Il tuo avversario resterà da solo al tavolo.</p><div class="acts"><button class="btn" data-x>Resta</button><button class="btn pri" data-go data-focus>Esci</button></div>`,sh=>{sh.querySelector('[data-x]').onclick=closeOv;sh.querySelector('[data-go]').onclick=()=>{closeOv();toMenu();};});}else toMenu();};
+$('#bFlip').onclick=()=>{flip=!flip;buildBoard();reconcile();marks();renderSide();};
+$('#bUndo').onclick=()=>{if(!G||busy||!G.mv.length||G.mode==='online')return;clearTimeout(cpuT);let n=1;if(G.mode==='cpu'){n=turn()===G.me?2:1;}
+  G.mv=G.mv.slice(0,Math.max(0,G.mv.length-n));G.res=null;rebuild();ended=null;lastMv=null;sel=null;targets=[];reconcile();marks();renderSide();saveGame();if(G.mode==='cpu'&&turn()!==G.me)scheduleCpu();};
+$('#bResign').onclick=()=>{if(!G||ended)return;const who=G.mode==='local'?turn():G.me;
+  openOv(`<h3>Abbandonare?</h3><p>La partita andrà al ${CNAME[who==='w'?'b':'w']}.</p><div class="acts"><button class="btn" data-x>Continua a giocare</button><button class="btn pri" data-go data-focus>Abbandona</button></div>`,sh=>{sh.querySelector('[data-x]').onclick=closeOv;
+    sh.querySelector('[data-go]').onclick=()=>{closeOv();G.res={win:who==='w'?'b':'w',why:`il ${CNAME[who]} ha abbandonato`};clearTimeout(cpuT);afterChange(true);};});};
+$('#bNew').onclick=()=>{if(!G)return;if(G.mode==='online'){netRematch();return;}if(!G.mv.length||ended){newGameSame();return;}
+  openOv(`<h3>Nuova partita?</h3><p>La partita in corso verrà chiusa.</p><div class="acts"><button class="btn" data-x>Annulla</button><button class="btn pri" data-go data-focus>Nuova partita</button></div>`,sh=>{sh.querySelector('[data-x]').onclick=closeOv;sh.querySelector('[data-go]').onclick=()=>{closeOv();newGameSame();};});};
+
+/* ================= menu ================= */
+function miniBoard(g){let h='<div class="frame" style="--bs:100%;padding:4%;width:100%"><div class="board" style="pointer-events:none">';
+  const ch0=g==='chess'&&HAS_CHESS?new Chess('r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4').board():null;
+  const dm=['........','.b.b.b.b','b.b...b.','.......b','b.b.w...','.w...w.w','w.w.w.w.','.w.w.w.w'];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const cls=g==='chess'?((r+c)%2?'d':'l'):(isDark(r,c)?'d':'l');let p='';
+    if(ch0){const x=ch0[r][c];if(x)p=`<img alt="" src="${PIECES[x.color+x.type]}" style="position:absolute;inset:0;width:100%;height:100%">`;}
+    else if(g==='dama'){const x=dm[r][c];if(x!=='.')p=`<div class="disc ${x}"></div>`;}
+    h+=`<div class="sq ${cls}">${p}</div>`;}return h+'</div></div>';}
+function renderMenu(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===prefs.g));
+  document.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===prefs.mode));
+  document.querySelectorAll('[data-l]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.l===prefs.lv));
+  document.querySelectorAll('[data-c]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===prefs.col));
+  $('#grpCpu').hidden=prefs.mode!=='cpu';$('#grpOnline').hidden=prefs.mode!=='online';$('#n2f').hidden=prefs.mode!=='local';
+  $('#n1l').textContent=prefs.mode==='local'?'Bianco':'Il tuo nome';$('#n1').placeholder=prefs.mode==='local'?'Nome di chi ha il Bianco':'Il tuo nome';
+  document.querySelector('label[for="n2"]').textContent='Nero';
+  $('#bStart').textContent=prefs.mode==='online'?'Crea un tavolo':'Inizia la partita';
+  if(!$('#n1').value)$('#n1').value=prefs.n1||'';if(!$('#n2').value)$('#n2').value=prefs.n2||'';
+  const sv=store.get('game',null),rb=$('#resumeBox');
+  if(sv&&sv.mv&&sv.mv.length){rb.hidden=false;rb.innerHTML=`<div class="resume"><span>Hai una partita a <b>${sv.g==='chess'?'scacchi':'dama'}</b> in sospeso (${sv.mv.length} semimosse).</span><button class="btn pri" id="bResume">Riprendi</button></div>`;
+    $('#bResume').onclick=()=>startGame({g:sv.g,mode:sv.mode,me:sv.me,lv:sv.lv,names:sv.names,mv:sv.mv.slice()});}else rb.hidden=true;}
+$('#menu').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.g){prefs.g=b.dataset.g;save();renderMenu();}else if(b.dataset.m){prefs.mode=b.dataset.m;save();renderMenu();}
+  else if(b.dataset.l){prefs.lv=+b.dataset.l;save();renderMenu();}else if(b.dataset.c){prefs.col=b.dataset.c;save();renderMenu();}});
+$('#bStart').onclick=()=>{if(prefs.mode==='online')netHost();else startOffline();};
+$('#bJoin').onclick=()=>netJoinCode();
+
+/* ================= ONLINE (Firebase Realtime Database) ================= */
+const net={db:null,uid:null,ref:null,code:'',role:'',started:false,v:0,offs:[],ready:null,hostCol:'w'};
+const CODECH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ver=s=>s.ep*100000+s.mv.length*2+(s.res?1:0);
+function fbReady(){if(net.ready)return net.ready;
+  net.ready=(async()=>{const cfg=window.FIREBASE_CONFIG;if(!cfg||!cfg.apiKey||!window.firebase)throw new Error('nocfg');if(!navigator.onLine)throw new Error('offline');
+    if(!firebase.apps.length){firebase.initializeApp(cfg);const em=window.FIREBASE_EMULATOR;if(em){firebase.auth().useEmulator('http://'+em+':9099');firebase.database().useEmulator(em,9000);}}const cred=await firebase.auth().signInAnonymously();net.uid=cred.user.uid;net.db=firebase.database();return true;})();
+  net.ready.catch(()=>{net.ready=null;});return net.ready;}
+function noRoom(err){const nocfg=err&&err.message==='nocfg';
+  openOv(`<h3>Gioco online non disponibile</h3><p>${nocfg?'Il gioco online non è ancora configurato in questa versione dell’app.':'Non riesco a collegarmi al server. Controlla la connessione a internet e riprova.'}</p><p class="sub">Contro il computer e in due sullo stesso dispositivo puoi giocare anche senza connessione.</p><div class="acts"><button class="btn pri" data-x data-focus>Ho capito</button></div>`,sh=>sh.querySelector('[data-x]').onclick=closeOv);}
+function myName(){const v=cleanName($('#n1').value);prefs.n1=v;save();return v||'Giocatore';}
+const tables=()=>net.db.ref('tables');
+function netAttach(ref,role,code){netLeave();net.ref=ref;net.role=role;net.code=code;net.started=false;net.v=0;
+  const cb=ref.on('value',onSnap,()=>flash('Collegamento al tavolo interrotto.'));net.offs.push(()=>ref.off('value',cb));
+  const me=ref.child('online/'+net.uid);me.set(true).catch(()=>{});me.onDisconnect().remove();net.offs.push(()=>{me.onDisconnect().cancel();me.remove().catch(()=>{});});
+  const onl=ref.child('online');let seen=false;const ocb=onl.on('value',s=>{if(!G||!G.seat||!net.started)return;const oc=G.me==='w'?'b':'w',ou=G.seat[oc]&&G.seat[oc].uid;if(!ou)return;
+      const here=!!(s.val()||{})[ou];if(here&&seen===false){seen=true;}else if(here&&seen==='away'){seen=true;flash(`${G.names[oc]} è tornato al tavolo.`);}else if(!here&&seen===true){seen='away';flash('L’avversario si è disconnesso. Se rientra con lo stesso codice, la partita riprende.');}});
+  net.offs.push(()=>onl.off('value',ocb));}
+function netLeave(){const r=net.ref,host=net.role==='host'&&!net.started;net.offs.forEach(f=>{try{f();}catch(e){}});net.offs=[];
+  if(r&&host)r.remove().catch(()=>{});net.ref=null;net.started=false;net.role='';$('#ov').dataset.lock='';}
+async function netHost(){try{await fbReady();}catch(e){noRoom(e);return;}if(prefs.g==='chess'&&!HAS_CHESS)return;
+  const col=prefs.col==='r'?(Math.random()<.5?'w':'b'):prefs.col==='b'?'b':'w';net.hostCol=col;const name=myName();let code=null,ref=null;
+  for(let i=0;i<6&&!code;i++){const c=Array.from({length:4},()=>CODECH[Math.random()*CODECH.length|0]).join('');const rf=tables().child(c);
+    try{const r=await rf.transaction(cur=>cur===null?{g:prefs.g,hostCol:col,host:{uid:net.uid,name},ep:0,mv:'',created:firebase.database.ServerValue.TIMESTAMP}:undefined);if(r.committed){code=c;ref=rf;}}catch(e){break;}}
+  if(!code){$('#onErr').textContent='Non riesco ad aprire il tavolo. Riprova tra poco.';return;}
+  netAttach(ref,'host',code);
+  $('#ov').dataset.lock='1';openOv(`<h3>Il tuo tavolo</h3><p class="sub">${prefs.g==='chess'?'Scacchi':'Dama'} · giochi con il ${CNAME[col]}. Manda questo codice al tuo avversario:</p><div class="code">${code}</div><p class="wait">In attesa che entri<span class="think"><i></i><i></i><i></i></span></p><p class="note">Deve aprire l’app, scegliere “Online”, scrivere il codice e toccare “Entra”.</p><div class="acts"><button class="btn" data-x>Chiudi il tavolo</button></div>`,
+    sh=>sh.querySelector('[data-x]').onclick=()=>{netLeave();closeOv();});}
+async function netJoinCode(){const code=$('#joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4){$('#onErr').textContent='Il codice è di 4 caratteri.';return;}
+  try{await fbReady();}catch(e){noRoom(e);return;}$('#onErr').textContent='';const name=myName(),uid=net.uid,ref=tables().child(code);let why='';
+  try{const r=await ref.transaction(cur=>{if(cur===null)return null;if(cur.host&&cur.host.uid===uid){why='own';return;}
+      if(cur.guest&&cur.guest.uid!==uid){why='full';return;}
+      if(!cur.guest){const h={uid:cur.host.uid,name:cur.host.name},gg={uid,name};cur.guest=gg;cur.w=cur.hostCol==='b'?gg:h;cur.b=cur.hostCol==='b'?h:gg;cur.ep=1;cur.mv='';cur.res=null;}
+      return cur;});
+    if(!r.committed){$('#onErr').textContent=why==='own'?'Questo è il tavolo che hai creato tu: il codice va dato al tuo avversario.':'Il tavolo è già occupato da due giocatori.';return;}
+    if(!r.snapshot.exists()){$('#onErr').textContent='Tavolo non trovato. Controlla il codice.';return;}
+  }catch(e){$('#onErr').textContent='Non riesco a entrare. Controlla la connessione e riprova.';return;}
+  netAttach(ref,'guest',code);}
+function onSnap(snap){const val=snap.val();
+  if(!val){if(net.started){flash('Il tavolo è stato chiuso.');}return;}
+  if(!val.w||!val.b||!['chess','dama'].includes(val.g))return;
+  if(val.g==='chess'&&!HAS_CHESS)return;
+  const s={g:val.g,ep:+val.ep||0,mv:(val.mv?String(val.mv).split(' '):[]).filter(x=>x&&x.length<40).slice(0,1200),res:val.res&&typeof val.res==='object'?{win:val.res.win==='w'||val.res.win==='b'?val.res.win:null,why:String(val.res.why||'').replace(/[<>]/g,'').slice(0,80)}:null,
+    w:{uid:val.w.uid,name:cleanName(val.w.name)||'Bianco'},b:{uid:val.b.uid,name:cleanName(val.b.name)||'Nero'}};
+  const v=ver(s);if(v<=net.v)return;
+  const myCol=s.w.uid===net.uid?'w':s.b.uid===net.uid?'b':null,names={w:s.w.name,b:s.b.name};
+  if(G&&G.mode==='online'&&net.started&&G.ep===s.ep&&s.mv.length===G.mv.length+1&&s.mv.slice(0,-1).join(' ')===G.mv.join(' ')){
+    net.v=v;G.seat={w:s.w,b:s.b};G.names=names;G.res=s.res;doMove(s.mv[s.mv.length-1],true);return;}
+  net.v=v;$('#ov').dataset.lock='';if(!$('#ov').hidden)closeOv();const was=net.started;net.started=true;
+  startGame({g:s.g,mode:'online',me:myCol,names,seat:{w:s.w,b:s.b},ep:s.ep,mv:s.mv.slice(),res:s.res},was&&G&&G.ep===s.ep);
+  if(ended)setTimeout(()=>showEnd(ended),300);}
+function netPush(){if(!net.ref||!G)return;const ep=G.ep,mv=G.mv.join(' '),prev=G.mv.slice(0,-1).join(' '),res=G.res||null;net.v=ver(G);
+  net.ref.transaction(cur=>{if(cur===null)return null;if(cur.ep!==ep)return;const cm=cur.mv||'';if(cm!==mv&&cm!==prev&&!(res&&cm===mv))return;cur.mv=mv;cur.res=res;cur.upd=Date.now();return cur;})
+    .then(r=>{if(!r.committed||!r.snapshot.exists()){net.v=0;net.ref&&net.ref.once('value',onSnap);}}).catch(()=>{net.v=0;flash('Mossa non inviata: controlla la connessione.');});}
+function netRematch(){if(!G||G.mode!=='online'||!net.started||!net.ref)return;const ep=G.ep;
+  net.ref.transaction(cur=>{if(cur===null)return null;if(cur.ep!==ep)return;const w=cur.w;cur.w=cur.b;cur.b=w;cur.ep=ep+1;cur.mv='';cur.res=null;return cur;}).catch(()=>flash('Non riesco ad avviare la rivincita. Riprova.'));}
+
+/* ================= INSTALLAZIONE (PWA) ================= */
+const inst={evt:null};
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function syncInstall(){const hide=isStandalone();document.querySelectorAll('.js-install').forEach(b=>b.hidden=hide);}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();inst.evt=e;syncInstall();});
+addEventListener('appinstalled',()=>{inst.evt=null;document.querySelectorAll('.js-install').forEach(b=>b.hidden=true);flashMenu('App installata: la trovi tra le tue app.');});
+function flashMenu(t){const n=$('#instNote');if(n){n.textContent=t;n.hidden=false;}}
+async function doInstall(){
+  if(inst.evt){const e=inst.evt;inst.evt=null;try{await e.prompt();const r=await e.userChoice;if(r&&r.outcome==='accepted')return;}catch(err){}}
+  const ios=isIOS(),android=/android/i.test(navigator.userAgent);
+  const steps=ios?`<ol><li>Apri questa pagina con <b>Safari</b> (se sei in un’altra app, tocca “Apri in Safari”).</li><li>Tocca il pulsante <b>Condividi</b>: il quadrato con la freccia verso l’alto, in basso al centro.</li><li>Scorri e tocca <b>Aggiungi alla schermata Home</b>, poi <b>Aggiungi</b>.</li></ol>`
+    :android?`<ol><li>Apri questa pagina con <b>Chrome</b> (se sei dentro WhatsApp o un’altra app, tocca ⋮ e scegli “Apri in Chrome”).</li><li>Tocca il menu <b>⋮</b> in alto a destra.</li><li>Tocca <b>Installa app</b> (o <b>Aggiungi a schermata Home</b>) e conferma.</li></ol>`
+    :`<ol><li>Usa <b>Chrome</b> o <b>Edge</b>.</li><li>Clicca l’icona di installazione a destra nella barra dell’indirizzo, oppure menu ⋮ → <b>Installa Dama e Scacchi</b>.</li></ol>`;
+  openOv(`<h3>Installa sul telefono</h3><p class="sub">L’app si aggiunge alla schermata Home come le altre, si apre a tutto schermo e funziona anche senza internet (tranne il gioco online). Non serve nessuno store.</p>${steps}<div class="acts"><button class="btn pri" data-x data-focus>Ho capito</button></div>`,sh=>sh.querySelector('[data-x]').onclick=closeOv);}
+document.querySelectorAll('.js-install').forEach(b=>b.addEventListener('click',doInstall));syncInstall();
+
+/* ================= boot ================= */
+$('#pvChess').innerHTML=miniBoard('chess');$('#pvDama').innerHTML=miniBoard('dama');renderMenu();
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
